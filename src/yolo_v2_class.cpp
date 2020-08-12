@@ -25,17 +25,24 @@ extern "C" {
 #define NFRAMES 3
 
 //static Detector* detector = NULL;
-static std::unique_ptr<Detector> detector;
+static std::unique_ptr<Detector> detectors[2];
 
-int init(const char *configurationFilename, const char *weightsFilename, int gpu)
+int init(const char *configurationFilename, const char *weightsFilename, int gpu, int detector_index)
 {
-    detector.reset(new Detector(configurationFilename, weightsFilename, gpu));
+    detectors[detector_index].reset(new Detector(configurationFilename, weightsFilename, gpu));
     return 1;
 }
 
 int detect_image(const char *filename, bbox_t_container &container)
 {
-    std::vector<bbox_t> detection = detector->detect(filename);
+    std::vector<bbox_t> detection = detectors[0]->detect(filename);
+    for (size_t i = 0; i < detection.size() && i < C_SHARP_MAX_OBJECTS; ++i)
+        container.candidates[i] = detection[i];
+    return detection.size();
+}
+
+int detect_mat_custom(cv::Mat image, bbox_t_container &container, int detector_num) {
+    std::vector<bbox_t> detection = detectors[detector_num]->detect(image);
     for (size_t i = 0; i < detection.size() && i < C_SHARP_MAX_OBJECTS; ++i)
         container.candidates[i] = detection[i];
     return detection.size();
@@ -46,7 +53,7 @@ int detect_mat(const uint8_t* data, const size_t data_length, bbox_t_container &
     std::vector<char> vdata(data, data + data_length);
     cv::Mat image = imdecode(cv::Mat(vdata), 1);
 
-    std::vector<bbox_t> detection = detector->detect(image);
+    std::vector<bbox_t> detection = detectors[0]->detect(image);
     for (size_t i = 0; i < detection.size() && i < C_SHARP_MAX_OBJECTS; ++i)
         container.candidates[i] = detection[i];
     return detection.size();
@@ -55,10 +62,10 @@ int detect_mat(const uint8_t* data, const size_t data_length, bbox_t_container &
 #endif    // OPENCV
 }
 
-int dispose() {
+int dispose(int detector_index) {
     //if (detector != NULL) delete detector;
     //detector = NULL;
-    detector.reset();
+    detectors[detector_index].reset();
     return 1;
 }
 
