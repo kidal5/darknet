@@ -176,6 +176,7 @@ typedef enum {
     GRU,
     LSTM,
     CONV_LSTM,
+    HISTORY,
     CRNN,
     BATCHNORM,
     NETWORK,
@@ -258,6 +259,7 @@ struct layer {
     int maxpool_zero_nonmax;
     int out_channels;
     float reverse;
+    int coordconv;
     int flatten;
     int spatial;
     int pad;
@@ -272,6 +274,7 @@ struct layer {
     int keep_delta_gpu;
     int optimized_memory;
     int steps;
+    int history_size;
     int bottleneck;
     float time_normalizer;
     int state_constrain;
