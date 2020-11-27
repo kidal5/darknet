@@ -1,0 +1,266 @@
+Microsoft (R) COFF/PE Dumper Version 14.27.29112.0
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+
+Dump of file cudnn64_7.dll
+
+File Type: DLL
+
+  Section contains the following exports for cudnn64_7.dll
+
+    00000000 characteristics
+    5DB613DC time date stamp Sun Oct 27 23:02:04 2019
+        0.00 version
+           1 ordinal base
+         235 number of functions
+         235 number of names
+
+    ordinal hint RVA      name
+
+          1    0 0217D488 NvOptimusEnablementCuda
+          2    1 00A49220 cudnnActivationBackward
+          3    2 00A499B0 cudnnActivationForward
+          4    3 00007B70 cudnnAddTensor
+          5    4 002B31C0 cudnnBatchNormalizationBackward
+          6    5 002BA540 cudnnBatchNormalizationBackwardEx
+          7    6 002BAC20 cudnnBatchNormalizationForwardInference
+          8    7 002BF0D0 cudnnBatchNormalizationForwardTraining
+          9    8 002C5C40 cudnnBatchNormalizationForwardTrainingEx
+         10    9 00306360 cudnnCTCLoss
+         11    A 0000F400 cudnnConvolutionBackwardBias
+         12    B 0000F670 cudnnConvolutionBackwardData
+         13    C 00010090 cudnnConvolutionBackwardFilter
+         14    D 00010B10 cudnnConvolutionBiasActivationForward
+         15    E 00010FE0 cudnnConvolutionForward
+         16    F 00001360 cudnnCopyAlgorithmDescriptor
+         17   10 00005590 cudnnCreate
+         18   11 000013B0 cudnnCreateActivationDescriptor
+         19   12 00001480 cudnnCreateAlgorithmDescriptor
+         20   13 000015D0 cudnnCreateAlgorithmPerformance
+         21   14 00CFC250 cudnnCreateAttnDescriptor
+         22   15 003075E0 cudnnCreateCTCLossDescriptor
+         23   16 00001670 cudnnCreateConvolutionDescriptor
+         24   17 00D800C0 cudnnCreateDropoutDescriptor
+         25   18 000060A0 cudnnCreateFilterDescriptor
+         26   19 0001C540 cudnnCreateFusedOpsConstParamPack
+         27   1A 0001C6F0 cudnnCreateFusedOpsPlan
+         28   1B 0001C8A0 cudnnCreateFusedOpsVariantParamPack
+         29   1C 00001760 cudnnCreateLRNDescriptor
+         30   1D 00001850 cudnnCreateOpTensorDescriptor
+         31   1E 00D09B70 cudnnCreatePersistentRNNPlan
+         32   1F 00001920 cudnnCreatePoolingDescriptor
+         33   20 00D0A310 cudnnCreateRNNDataDescriptor
+         34   21 00D0A400 cudnnCreateRNNDescriptor
+         35   22 000019F0 cudnnCreateReduceTensorDescriptor
+         36   23 00CE4E50 cudnnCreateSeqDataDescriptor
+         37   24 00001AC0 cudnnCreateSpatialTransformerDescriptor
+         38   25 00006180 cudnnCreateTensorDescriptor
+         39   26 00007F70 cudnnCreateTensorTransformDescriptor
+         40   27 00001BA0 cudnnDeriveBNTensorDescriptor
+         41   28 00005B10 cudnnDestroy
+         42   29 00001DB0 cudnnDestroyActivationDescriptor
+         43   2A 00001E50 cudnnDestroyAlgorithmDescriptor
+         44   2B 00001E90 cudnnDestroyAlgorithmPerformance
+         45   2C 00CFC330 cudnnDestroyAttnDescriptor
+         46   2D 003076C0 cudnnDestroyCTCLossDescriptor
+         47   2E 00001F30 cudnnDestroyConvolutionDescriptor
+         48   2F 00D80190 cudnnDestroyDropoutDescriptor
+         49   30 00006280 cudnnDestroyFilterDescriptor
+         50   31 0001CA50 cudnnDestroyFusedOpsConstParamPack
+         51   32 0001CB40 cudnnDestroyFusedOpsPlan
+         52   33 0001CC30 cudnnDestroyFusedOpsVariantParamPack
+         53   34 00001FD0 cudnnDestroyLRNDescriptor
+         54   35 00002070 cudnnDestroyOpTensorDescriptor
+         55   36 00D0A520 cudnnDestroyPersistentRNNPlan
+         56   37 00002110 cudnnDestroyPoolingDescriptor
+         57   38 00D0A5F0 cudnnDestroyRNNDataDescriptor
+         58   39 00D0A6A0 cudnnDestroyRNNDescriptor
+         59   3A 000021B0 cudnnDestroyReduceTensorDescriptor
+         60   3B 00CE4F40 cudnnDestroySeqDataDescriptor
+         61   3C 00002250 cudnnDestroySpatialTransformerDescriptor
+         62   3D 00006320 cudnnDestroyTensorDescriptor
+         63   3E 00008070 cudnnDestroyTensorTransformDescriptor
+         64   3F 00A4FD90 cudnnDivisiveNormalizationBackward
+         65   40 00A50BD0 cudnnDivisiveNormalizationForward
+         66   41 00D80230 cudnnDropoutBackward
+         67   42 00D80690 cudnnDropoutForward
+         68   43 00D80AF0 cudnnDropoutGetReserveSpaceSize
+         69   44 00D80C10 cudnnDropoutGetStatesSize
+         70   45 00011310 cudnnFindConvolutionBackwardDataAlgorithm
+         71   46 00011530 cudnnFindConvolutionBackwardDataAlgorithmEx
+         72   47 00011840 cudnnFindConvolutionBackwardFilterAlgorithm
+         73   48 00011A60 cudnnFindConvolutionBackwardFilterAlgorithmEx
+         74   49 00011D70 cudnnFindConvolutionForwardAlgorithm
+         75   4A 00011F90 cudnnFindConvolutionForwardAlgorithmEx
+         76   4B 00D48770 cudnnFindRNNBackwardDataAlgorithmEx
+         77   4C 00D564B0 cudnnFindRNNBackwardWeightsAlgorithmEx
+         78   4D 00D2C570 cudnnFindRNNForwardInferenceAlgorithmEx
+         79   4E 00D2CB80 cudnnFindRNNForwardTrainingAlgorithmEx
+         80   4F 0001CD20 cudnnFusedOpsExecute
+         81   50 00002300 cudnnGetActivationDescriptor
+         82   51 000023F0 cudnnGetAlgorithmDescriptor
+         83   52 00002400 cudnnGetAlgorithmPerformance
+         84   53 00002430 cudnnGetAlgorithmSpaceSize
+         85   54 00CFC3D0 cudnnGetAttnDescriptor
+         86   55 00002470 cudnnGetBackdoor
+         87   56 002C61F0 cudnnGetBatchNormalizationBackwardExWorkspaceSize
+         88   57 002C6890 cudnnGetBatchNormalizationForwardTrainingExWorkspaceSize
+         89   58 002C6CC0 cudnnGetBatchNormalizationTrainingExReserveSpaceSize
+         90   59 00307760 cudnnGetCTCLossDescriptor
+         91   5A 00307840 cudnnGetCTCLossDescriptorEx
+         92   5B 00307940 cudnnGetCTCLossWorkspaceSize
+         93   5C 002787F0 cudnnGetCallback
+         94   5D 000024A0 cudnnGetConvolution2dDescriptor
+         95   5E 000025F0 cudnnGetConvolution2dForwardOutputDim
+         96   5F 000122A0 cudnnGetConvolutionBackwardDataAlgorithm
+         97   60 00012670 cudnnGetConvolutionBackwardDataAlgorithmMaxCount
+         98   61 000127B0 cudnnGetConvolutionBackwardDataAlgorithm_v7
+         99   62 000129D0 cudnnGetConvolutionBackwardDataWorkspaceSize
+        100   63 00012B90 cudnnGetConvolutionBackwardFilterAlgorithm
+        101   64 00012F60 cudnnGetConvolutionBackwardFilterAlgorithmMaxCount
+        102   65 000130A0 cudnnGetConvolutionBackwardFilterAlgorithm_v7
+        103   66 000132C0 cudnnGetConvolutionBackwardFilterWorkspaceSize
+        104   67 00013480 cudnnGetConvolutionForwardAlgorithm
+        105   68 000138C0 cudnnGetConvolutionForwardAlgorithmMaxCount
+        106   69 00013A00 cudnnGetConvolutionForwardAlgorithm_v7
+        107   6A 00013C20 cudnnGetConvolutionForwardWorkspaceSize
+        108   6B 00002770 cudnnGetConvolutionGroupCount
+        109   6C 00002850 cudnnGetConvolutionMathType
+        110   6D 00002930 cudnnGetConvolutionNdDescriptor
+        111   6E 00002AC0 cudnnGetConvolutionNdForwardOutputDim
+        112   6F 00002CC0 cudnnGetConvolutionReorderType
+        113   70 00002DA0 cudnnGetCudartVersion
+        114   71 00D80D10 cudnnGetDropoutDescriptor
+        115   72 00002DB0 cudnnGetErrorString
+        116   73 000063C0 cudnnGetFilter4dDescriptor
+        117   74 000064F0 cudnnGetFilterNdDescriptor
+        118   75 00006660 cudnnGetFilterSizeInBytes
+        119   76 008F11B0 cudnnGetFoldedConvBackwardDataDescriptors
+        120   77 0001CEB0 cudnnGetFusedOpsConstParamPackAttribute
+        121   78 0001D710 cudnnGetFusedOpsVariantParamPackAttribute
+        122   79 00002E80 cudnnGetLRNDescriptor
+        123   7A 00CFC6A0 cudnnGetMultiHeadAttnBuffers
+        124   7B 00CFC9B0 cudnnGetMultiHeadAttnWeights
+        125   7C 00002F90 cudnnGetOpTensorDescriptor
+        126   7D 00003080 cudnnGetPooling2dDescriptor
+        127   7E 000031D0 cudnnGetPooling2dForwardOutputDim
+        128   7F 00003320 cudnnGetPoolingNdDescriptor
+        129   80 000034B0 cudnnGetPoolingNdForwardOutputDim
+        130   81 00003650 cudnnGetProperty
+        131   82 00D2CDF0 cudnnGetRNNBackwardDataAlgorithmMaxCount
+        132   83 00D2CDF0 cudnnGetRNNBackwardWeightsAlgorithmMaxCount
+        133   84 00003750 cudnnGetRNNBiasMode
+        134   85 00D0A740 cudnnGetRNNDataDescriptor
+        135   86 00D0A930 cudnnGetRNNDescriptor
+        136   87 00D2CDF0 cudnnGetRNNForwardInferenceAlgorithmMaxCount
+        137   88 00D2CDF0 cudnnGetRNNForwardTrainingAlgorithmMaxCount
+        138   89 00D0AAE0 cudnnGetRNNLinLayerBiasParams
+        139   8A 00D0AF60 cudnnGetRNNLinLayerMatrixParams
+        140   8B 00D0B3E0 cudnnGetRNNMatrixMathType
+        141   8C 00D0B400 cudnnGetRNNPaddingMode
+        142   8D 00D0B4E0 cudnnGetRNNParamsSize
+        143   8E 00D0B6D0 cudnnGetRNNProjectionLayers
+        144   8F 00D0B7F0 cudnnGetRNNTrainingReserveSize
+        145   90 00D0B940 cudnnGetRNNWorkspaceSize
+        146   91 00003830 cudnnGetReduceTensorDescriptor
+        147   92 0000A260 cudnnGetReductionIndicesSize
+        148   93 0000A410 cudnnGetReductionWorkspaceSize
+        149   94 00CE5000 cudnnGetSeqDataDescriptor
+        150   95 00005CC0 cudnnGetStream
+        151   96 00006790 cudnnGetTensor4dDescriptor
+        152   97 00006950 cudnnGetTensorNdDescriptor
+        153   98 00006AD0 cudnnGetTensorSizeInBytes
+        154   99 00008140 cudnnGetTensorTransformDescriptor
+        155   9A 00003940 cudnnGetVersion
+        156   9B 00C29EB0 cudnnIm2Col
+        157   9C 00008310 cudnnInitTransformDest
+        158   9D 00A4BF10 cudnnLRNCrossChannelBackward
+        159   9E 00A4D090 cudnnLRNCrossChannelForward
+        160   9F 0001DD60 cudnnMakeFusedOpsPlan
+        161   A0 00CFCEE0 cudnnMultiHeadAttnBackwardData
+        162   A1 00CFE1F0 cudnnMultiHeadAttnBackwardWeights
+        163   A2 00CFEBB0 cudnnMultiHeadAttnForward
+        164   A3 00009BD0 cudnnOpTensor
+        165   A4 00A1E390 cudnnPoolingBackward
+        166   A5 00A1E900 cudnnPoolingForward
+        167   A6 00003950 cudnnQueryRuntimeError
+        168   A7 00D48A10 cudnnRNNBackwardData
+        169   A8 00D49840 cudnnRNNBackwardDataEx
+        170   A9 00D566F0 cudnnRNNBackwardWeights
+        171   AA 00D56F60 cudnnRNNBackwardWeightsEx
+        172   AB 00D2CE10 cudnnRNNForwardInference
+        173   AC 00D2D270 cudnnRNNForwardInferenceEx
+        174   AD 00D2D800 cudnnRNNForwardTraining
+        175   AE 00D2DD00 cudnnRNNForwardTrainingEx
+        176   AF 00D0BA90 cudnnRNNGetClip
+        177   B0 00D0BBA0 cudnnRNNSetClip
+        178   B1 0000A680 cudnnReduceTensor
+        179   B2 002CBE60 cudnnReorderFilterAndBias
+        180   B3 00003B00 cudnnRestoreAlgorithm
+        181   B4 00D80E40 cudnnRestoreDropoutDescriptor
+        182   B5 00003C20 cudnnSaveAlgorithm
+        183   B6 000086A0 cudnnScaleTensor
+        184   B7 00003D00 cudnnSetActivationDescriptor
+        185   B8 00003E40 cudnnSetAlgorithmDescriptor
+        186   B9 00003E50 cudnnSetAlgorithmPerformance
+        187   BA 00D00020 cudnnSetAttnDescriptor
+        188   BB 00003E70 cudnnSetBackdoor
+        189   BC 00003EC0 cudnnSetBackdoorEx
+        190   BD 00307DD0 cudnnSetCTCLossDescriptor
+        191   BE 00307EC0 cudnnSetCTCLossDescriptorEx
+        192   BF 00278880 cudnnSetCallback
+        193   C0 00003EF0 cudnnSetConvolution2dDescriptor
+        194   C1 00004130 cudnnSetConvolutionGroupCount
+        195   C2 00004210 cudnnSetConvolutionMathType
+        196   C3 00004300 cudnnSetConvolutionNdDescriptor
+        197   C4 00004550 cudnnSetConvolutionReorderType
+        198   C5 00D81010 cudnnSetDropoutDescriptor
+        199   C6 00006BB0 cudnnSetFilter4dDescriptor
+        200   C7 00006D80 cudnnSetFilterNdDescriptor
+        201   C8 0001DF40 cudnnSetFusedOpsConstParamPackAttribute
+        202   C9 0001EAF0 cudnnSetFusedOpsVariantParamPackAttribute
+        203   CA 00004630 cudnnSetLRNDescriptor
+        204   CB 000047D0 cudnnSetOpTensorDescriptor
+        205   CC 00D0BD50 cudnnSetPersistentRNNPlan
+        206   CD 00004900 cudnnSetPooling2dDescriptor
+        207   CE 00004B40 cudnnSetPoolingNdDescriptor
+        208   CF 00D0BE40 cudnnSetRNNAlgorithmDescriptor
+        209   D0 00004D80 cudnnSetRNNBiasMode
+        210   D1 00D0BE70 cudnnSetRNNDataDescriptor
+        211   D2 00D0C1D0 cudnnSetRNNDescriptor
+        212   D3 00D0C420 cudnnSetRNNDescriptor_v5
+        213   D4 00D0C680 cudnnSetRNNDescriptor_v6
+        214   D5 00D0C8F0 cudnnSetRNNMatrixMathType
+        215   D6 00D0C9E0 cudnnSetRNNPaddingMode
+        216   D7 00D0CAC0 cudnnSetRNNProjectionLayers
+        217   D8 00004E80 cudnnSetReduceTensorDescriptor
+        218   D9 00CE5260 cudnnSetSeqDataDescriptor
+        219   DA 00005020 cudnnSetSpatialTransformerNdDescriptor
+        220   DB 00005DA0 cudnnSetStream
+        221   DC 000088C0 cudnnSetTensor
+        222   DD 00006FB0 cudnnSetTensor4dDescriptor
+        223   DE 00007220 cudnnSetTensor4dDescriptorEx
+        224   DF 000074F0 cudnnSetTensorNdDescriptor
+        225   E0 00007670 cudnnSetTensorNdDescriptorEx
+        226   E1 00008AC0 cudnnSetTensorTransformDescriptor
+        227   E2 009E01B0 cudnnSoftmaxBackward
+        228   E3 009D27A0 cudnnSoftmaxForward
+        229   E4 00C2D840 cudnnSpatialTfGridGeneratorBackward
+        230   E5 00C2D9D0 cudnnSpatialTfGridGeneratorForward
+        231   E6 00C2C340 cudnnSpatialTfSamplerBackward
+        232   E7 00C2C810 cudnnSpatialTfSamplerForward
+        233   E8 00008D10 cudnnTransformFilter
+        234   E9 00008FB0 cudnnTransformTensor
+        235   EA 00009410 cudnnTransformTensorEx
+
+  Summary
+
+       C7000 .data
+        2000 .nvFatBi
+    190BD000 .nv_fatb
+       8E000 .pdata
+     10A8000 .rdata
+       34000 .reloc
+        7000 .rsrc
+     10AB000 .text
+        1000 .tls

@@ -1,0 +1,1 @@
+https://stackoverflow.com/questions/9946322/how-to-generate-an-import-library-lib-file-from-a-dll
