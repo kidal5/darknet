@@ -419,6 +419,8 @@ struct layer {
 
     float scale_x_y;
     int objectness_smooth;
+    int new_coords;
+    int show_details;
     float max_delta;
     float uc_normalizer;
     float iou_normalizer;
@@ -695,6 +697,8 @@ typedef struct network {
     int n;
     int batch;
     uint64_t *seen;
+    float *delta_rolling_avg;
+    int equidistant_point;
     int *cur_iteration;
     float loss_scale;
     int *t;
