@@ -14,7 +14,6 @@
 
 
 extern void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *filename, int top);
-extern void run_yolo(int argc, char **argv);
 extern void run_detector(int argc, char **argv);
 extern void run_nightmare(int argc, char **argv);
 extern void run_dice(int argc, char **argv);
@@ -476,8 +475,6 @@ int main(int argc, char **argv)
 
     if (0 == strcmp(argv[1], "average")){
         average(argc, argv);
-    } else if (0 == strcmp(argv[1], "yolo")){
-        run_yolo(argc, argv);
     } else if (0 == strcmp(argv[1], "detector")){
         run_detector(argc, argv);
     } else if (0 == strcmp(argv[1], "detect")){

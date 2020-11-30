@@ -236,7 +236,6 @@
     <ClCompile Include="..\..\src\tree.c" />
     <ClCompile Include="..\..\src\upsample_layer.c" />
     <ClCompile Include="..\..\src\utils.c" />
-    <ClCompile Include="..\..\src\yolo.c" />
     <ClCompile Include="..\..\src\yolo_layer.c" />
     <ClCompile Include="..\..\src\yolo_v2_class.cpp" />
   </ItemGroup>
