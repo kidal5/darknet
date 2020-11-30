@@ -182,10 +182,7 @@
     <ClCompile Include="..\..\src\batchnorm_layer.c" />
     <ClCompile Include="..\..\src\blas.c" />
     <ClCompile Include="..\..\src\box.c" />
-    <ClCompile Include="..\..\src\captcha.c" />
-    <ClCompile Include="..\..\src\cifar.c" />
     <ClCompile Include="..\..\src\classifier.c" />
-    <ClCompile Include="..\..\src\coco.c" />
     <ClCompile Include="..\..\src\col2im.c" />
     <ClCompile Include="..\..\src\compare.c" />
     <ClCompile Include="..\..\src\connected_layer.c" />
@@ -237,13 +234,9 @@
     <ClCompile Include="..\..\src\shortcut_layer.c" />
     <ClCompile Include="..\..\src\softmax_layer.c" />
     <ClCompile Include="..\..\src\super.c" />
-    <ClCompile Include="..\..\src\swag.c" />
-    <ClCompile Include="..\..\src\tag.c" />
     <ClCompile Include="..\..\src\tree.c" />
     <ClCompile Include="..\..\src\upsample_layer.c" />
     <ClCompile Include="..\..\src\utils.c" />
-    <ClCompile Include="..\..\src\voxel.c" />
-    <ClCompile Include="..\..\src\writing.c" />
     <ClCompile Include="..\..\src\yolo.c" />
     <ClCompile Include="..\..\src\yolo_layer.c" />
     <ClCompile Include="..\..\src\yolo_v2_class.cpp" />
