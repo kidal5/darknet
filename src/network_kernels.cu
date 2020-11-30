@@ -482,25 +482,6 @@ pthread_t sync_layer_in_thread(network* nets, int n, int j)
     return thread;
 }
 
-void sync_nets(network* nets, int n, int interval)
-{
-    int j;
-    int layers = nets[0].n;
-    pthread_t* threads = (pthread_t*)calloc(layers, sizeof(pthread_t));
-
-    *nets[0].seen += interval * (n - 1) * nets[0].batch * nets[0].subdivisions;
-    for (j = 0; j < n; ++j) {
-        *nets[j].seen = *nets[0].seen;
-    }
-    for (j = 0; j < layers; ++j) {
-        threads[j] = sync_layer_in_thread(nets, n, j);
-    }
-    for (j = 0; j < layers; ++j) {
-        pthread_join(threads[j], 0);
-    }
-    free(threads);
-}
-
 float train_networks(network* nets, int n, data d, int interval)
 {
     return -1;
