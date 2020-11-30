@@ -53,7 +53,7 @@ layer make_yolo_layer(int batch, int w, int h, int n, int total, int *mask, int 
         l.biases[i] = .5;
     }
 
-    l.forward = forward_yolo_layer;
+    l.forward = NULL;
     l.backward = backward_yolo_layer;
 #ifdef GPU
     l.forward_gpu = forward_yolo_layer_gpu;
@@ -644,180 +644,6 @@ void *process_batch(void* ptr)
 
 
 
-void forward_yolo_layer(const layer l, network_state state)
-{
-    //int i, j, b, t, n;
-    memcpy(l.output, state.input, l.outputs*l.batch * sizeof(float));
-    int b, n;
-
-#ifndef GPU
-    for (b = 0; b < l.batch; ++b) {
-        for (n = 0; n < l.n; ++n) {
-            int index = entry_index(l, b, n*l.w*l.h, 0);
-            if (l.new_coords) {
-                activate_array(l.output + index, 4 * l.w*l.h, LOGISTIC);    // x,y,w,h
-            }
-            else {
-                activate_array(l.output + index, 2 * l.w*l.h, LOGISTIC);        // x,y,
-            }
-            scal_add_cpu(2 * l.w*l.h, l.scale_x_y, -0.5*(l.scale_x_y - 1), l.output + index, 1);    // scale x,y
-            index = entry_index(l, b, n*l.w*l.h, 4);
-            activate_array(l.output + index, (1 + l.classes)*l.w*l.h, LOGISTIC);
-        }
-    }
-#endif
-
-    // delta is zeroed
-    memset(l.delta, 0, l.outputs * l.batch * sizeof(float));
-    if (!state.train) return;
-
-    int i;
-    for (i = 0; i < l.batch * l.w*l.h*l.n; ++i) l.labels[i] = -1;
-    for (i = 0; i < l.batch * l.w*l.h*l.n; ++i) l.class_ids[i] = -1;
-    //float avg_iou = 0;
-    float tot_iou = 0;
-    float tot_giou = 0;
-    float tot_diou = 0;
-    float tot_ciou = 0;
-    float tot_iou_loss = 0;
-    float tot_giou_loss = 0;
-    float tot_diou_loss = 0;
-    float tot_ciou_loss = 0;
-    float recall = 0;
-    float recall75 = 0;
-    float avg_cat = 0;
-    float avg_obj = 0;
-    float avg_anyobj = 0;
-    int count = 0;
-    int class_count = 0;
-    *(l.cost) = 0;
-
-
-    int num_threads = l.batch;
-    pthread_t* threads = (pthread_t*)calloc(num_threads, sizeof(pthread_t));
-
-    struct train_yolo_args* yolo_args = (train_yolo_args*)xcalloc(l.batch, sizeof(struct train_yolo_args));
-
-    for (b = 0; b < l.batch; b++)
-    {
-        yolo_args[b].l = l;
-        yolo_args[b].state = state;
-        yolo_args[b].b = b;
-
-        yolo_args[b].tot_iou = 0;
-        yolo_args[b].count = 0;
-        yolo_args[b].class_count = 0;
-
-        if (pthread_create(&threads[b], 0, process_batch, &(yolo_args[b]))) error("Thread creation failed");
-    }
-
-    for (b = 0; b < l.batch; b++)
-    {
-        pthread_join(threads[b], 0);
-
-        tot_iou += yolo_args[b].tot_iou;
-        count += yolo_args[b].count;
-        class_count += yolo_args[b].class_count;
-    }
-
-    free(yolo_args);
-    free(threads);
-
-    // Search for an equidistant point from the distant boundaries of the local minimum
-    int iteration_num = get_current_iteration(state.net);
-    //printf(" equidistant_point ep = %d, it = %d \n", state.net.equidistant_point, iteration_num);
-
-    if (state.net.equidistant_point && state.net.equidistant_point < iteration_num) {
-        float progress_it = iteration_num - state.net.equidistant_point;
-        float progress = progress_it / (state.net.max_batches - state.net.equidistant_point);
-        float loss_threshold = (*state.net.delta_rolling_avg) * progress;
-        printf(" RUN equidistant_point loss_threshold = %f, ep = %d, it = %d \n", loss_threshold, state.net.equidistant_point, iteration_num);
-
-        float cur_max = 0;
-        for (i = 0; i < l.batch * l.outputs; ++i) {
-            if (cur_max < fabs(l.delta[i]))
-                cur_max = fabs(l.delta[i]);
-
-            if (fabs(l.delta[i]) < loss_threshold)
-                l.delta[i] = 0;
-        }
-        
-        *state.net.delta_rolling_avg = *state.net.delta_rolling_avg * 0.99 + cur_max * 0.01;
-    }
-
-    if (count == 0) count = 1;
-    if (class_count == 0) class_count = 1;
-
-    if (l.show_details == 0) {
-        float loss = pow(mag_array(l.delta, l.outputs * l.batch), 2);
-        *(l.cost) = loss;
-
-        loss /= l.batch;
-
-        fprintf(stderr, "v3 (%s loss, Normalizer: (iou: %.2f, obj: %.2f, cls: %.2f) Region %d Avg (IOU: %f), count: %d, total_loss = %f \n",
-            (l.iou_loss == MSE ? "mse" : (l.iou_loss == GIOU ? "giou" : "iou")), l.iou_normalizer, l.obj_normalizer, l.cls_normalizer, state.index, tot_iou / count, count, loss);
-    }
-    else {
-        // show detailed output
-
-        int stride = l.w*l.h;
-        float* no_iou_loss_delta = (float *)calloc(l.batch * l.outputs, sizeof(float));
-        memcpy(no_iou_loss_delta, l.delta, l.batch * l.outputs * sizeof(float));
-
-
-        int j, n;
-        for (b = 0; b < l.batch; ++b) {
-            for (j = 0; j < l.h; ++j) {
-                for (i = 0; i < l.w; ++i) {
-                    for (n = 0; n < l.n; ++n) {
-                        int index = entry_index(l, b, n*l.w*l.h + j*l.w + i, 0);
-                        no_iou_loss_delta[index + 0 * stride] = 0;
-                        no_iou_loss_delta[index + 1 * stride] = 0;
-                        no_iou_loss_delta[index + 2 * stride] = 0;
-                        no_iou_loss_delta[index + 3 * stride] = 0;
-                    }
-                }
-            }
-        }
-
-        float classification_loss = l.obj_normalizer * pow(mag_array(no_iou_loss_delta, l.outputs * l.batch), 2);
-        free(no_iou_loss_delta);
-        float loss = pow(mag_array(l.delta, l.outputs * l.batch), 2);
-        float iou_loss = loss - classification_loss;
-
-        float avg_iou_loss = 0;
-        *(l.cost) = loss;
-        /*
-        // gIOU loss + MSE (objectness) loss
-        if (l.iou_loss == MSE) {
-            *(l.cost) = pow(mag_array(l.delta, l.outputs * l.batch), 2);
-        }
-        else {
-            // Always compute classification loss both for iou + cls loss and for logging with mse loss
-            // TODO: remove IOU loss fields before computing MSE on class
-            //   probably split into two arrays
-            if (l.iou_loss == GIOU) {
-                avg_iou_loss = count > 0 ? l.iou_normalizer * (tot_giou_loss / count) : 0;
-            }
-            else {
-                avg_iou_loss = count > 0 ? l.iou_normalizer * (tot_iou_loss / count) : 0;
-            }
-            *(l.cost) = avg_iou_loss + classification_loss;
-        }
-        */
-
-        loss /= l.batch;
-        classification_loss /= l.batch;
-        iou_loss /= l.batch;
-
-        fprintf(stderr, "v3 (%s loss, Normalizer: (iou: %.2f, obj: %.2f, cls: %.2f) Region %d Avg (IOU: %f), count: %d, class_loss = %f, iou_loss = %f, total_loss = %f \n",
-            (l.iou_loss == MSE ? "mse" : (l.iou_loss == GIOU ? "giou" : "iou")), l.iou_normalizer, l.obj_normalizer, l.cls_normalizer, state.index, tot_iou / count, count, classification_loss, iou_loss, loss);
-
-        //fprintf(stderr, "v3 (%s loss, Normalizer: (iou: %.2f, cls: %.2f) Region %d Avg (IOU: %f, GIOU: %f), Class: %f, Obj: %f, No Obj: %f, .5R: %f, .75R: %f, count: %d, class_loss = %f, iou_loss = %f, total_loss = %f \n",
-        //    (l.iou_loss == MSE ? "mse" : (l.iou_loss == GIOU ? "giou" : "iou")), l.iou_normalizer, l.obj_normalizer, state.index, tot_iou / count, tot_giou / count, avg_cat / class_count, avg_obj / count, avg_anyobj / (l.w*l.h*l.n*l.batch), recall / count, recall75 / count, count,
-        //    classification_loss, iou_loss, loss);
-    }
-}
 
 void backward_yolo_layer(const layer l, network_state state)
 {
@@ -1088,27 +914,6 @@ void forward_yolo_layer_gpu(const layer l, network_state state)
         CHECK_CUDA(cudaPeekAtLastError());
         return;
     }
-
-    float *in_cpu = (float *)xcalloc(l.batch*l.inputs, sizeof(float));
-    cuda_pull_array(l.output_gpu, l.output, l.batch*l.outputs);
-    memcpy(in_cpu, l.output, l.batch*l.outputs*sizeof(float));
-    float *truth_cpu = 0;
-    if (state.truth) {
-        int num_truth = l.batch*l.truths;
-        truth_cpu = (float *)xcalloc(num_truth, sizeof(float));
-        cuda_pull_array(state.truth, truth_cpu, num_truth);
-    }
-    network_state cpu_state = state;
-    cpu_state.net = state.net;
-    cpu_state.index = state.index;
-    cpu_state.train = state.train;
-    cpu_state.truth = truth_cpu;
-    cpu_state.input = in_cpu;
-    forward_yolo_layer(l, cpu_state);
-    //forward_yolo_layer(l, state);
-    cuda_push_array(l.delta_gpu, l.delta, l.batch*l.outputs);
-    free(in_cpu);
-    if (cpu_state.truth) free(cpu_state.truth);
 }
 
 void backward_yolo_layer_gpu(const layer l, network_state state)

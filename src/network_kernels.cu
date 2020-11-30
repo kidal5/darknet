@@ -298,16 +298,6 @@ void* train_thread(void* ptr)
     return 0;
 }
 
-pthread_t train_network_in_thread(network net, data d, float* err)
-{
-    pthread_t thread;
-    train_args* ptr = (train_args*)calloc(1, sizeof(train_args));
-    ptr->net = net;
-    ptr->d = d;
-    ptr->err = err;
-    if (pthread_create(&thread, 0, train_thread, ptr)) error("Thread creation failed");
-    return thread;
-}
 
 void pull_updates(layer l)
 {
@@ -513,39 +503,7 @@ void sync_nets(network* nets, int n, int interval)
 
 float train_networks(network* nets, int n, data d, int interval)
 {
-    int i;
-#ifdef _DEBUG
-    int batch = nets[0].batch;
-    int subdivisions = nets[0].subdivisions;
-    assert(batch * subdivisions * n == d.X.rows);
-#endif
-    pthread_t* threads = (pthread_t*)calloc(n, sizeof(pthread_t));
-    float* errors = (float*)calloc(n, sizeof(float));
-
-    float sum = 0;
-    for (i = 0; i < n; ++i) {
-        data p = get_data_part(d, i, n);
-        threads[i] = train_network_in_thread(nets[i], p, errors + i);
-    }
-    for (i = 0; i < n; ++i) {
-        pthread_join(threads[i], 0);
-        //printf("%f\n", errors[i]);
-        sum += errors[i];
-    }
-    //cudaDeviceSynchronize();
-    *nets[0].cur_iteration += (n - 1);
-    *nets[0].seen = nets[0].batch * nets[0].subdivisions * get_current_iteration(nets[0]); // remove this line, when you will save to weights-file both: seen & cur_iteration
-    if (get_current_iteration(nets[0]) % interval == 0)
-    {
-        printf("Syncing... ");
-        fflush(stdout);
-        sync_nets(nets, n, interval);
-        printf("Done!\n");
-    }
-    //cudaDeviceSynchronize();
-    free(threads);
-    free(errors);
-    return (float)sum / (n);
+    return -1;
 }
 
 float* get_network_output_layer_gpu(network net, int i)
