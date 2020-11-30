@@ -1455,7 +1455,6 @@ void calc_anchors(char *datacfg, int num_of_clusters, int width, int height, int
                 sprintf(buff, "echo \"Wrong label: %s - j = %d, x = %f, y = %f, width = %f, height = %f\" >> bad_label.list",
                     labelpath, j, truth[j].x, truth[j].y, truth[j].w, truth[j].h);
                 system(buff);
-                if (check_mistakes) getchar();
             }
             if (truth[j].id >= classes) {
                 classes = truth[j].id + 1;
@@ -1664,12 +1663,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
 
         float *X = sized.data;
 
-        //time= what_time_is_it_now();
-        double time = get_time_point();
         network_predict(net, X);
-        //network_predict_image(&net, im); letterbox = 1;
-        printf("%s: Predicted in %lf milli-seconds.\n", input, ((double)get_time_point() - time) / 1000);
-        //printf("%s: Predicted in %f seconds.\n", input, (what_time_is_it_now()-time));
 
         int nboxes = 0;
         detection *dets = get_network_boxes(&net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letter_box);

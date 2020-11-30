@@ -19,7 +19,6 @@ extern void run_dice(int argc, char **argv);
 extern void run_compare(int argc, char **argv);
 extern void run_char_rnn(int argc, char **argv);
 extern void run_vid_rnn(int argc, char **argv);
-extern void run_go(int argc, char **argv);
 extern void run_art(int argc, char **argv);
 
 void average(int argc, char *argv[])
@@ -480,8 +479,6 @@ int main(int argc, char **argv)
 		int ext_output = find_arg(argc, argv, "-ext_output");
         char *filename = (argc > 4) ? argv[4]: 0;
         test_detector("cfg/coco.data", argv[2], argv[3], filename, thresh, 0.5, 0, ext_output, 0, NULL, 0, 0);
-    } else if (0 == strcmp(argv[1], "go")){
-        run_go(argc, argv);
     } else if (0 == strcmp(argv[1], "rnn")){
         run_char_rnn(argc, argv);
     } else if (0 == strcmp(argv[1], "vid")){

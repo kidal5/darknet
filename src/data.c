@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern int check_mistakes;
-
 #define NUMCHARS 37
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -206,11 +204,6 @@ box_label *read_boxes(char *filename, int *n)
         char *new_line = "\n";
         fwrite(new_line, sizeof(char), strlen(new_line), fw);
         fclose(fw);
-        if (check_mistakes) {
-            printf("\n Error in read_boxes() \n");
-            getchar();
-        }
-
         *n = 0;
         return boxes;
     }
@@ -409,7 +402,6 @@ int fill_truth_detection(const char *path, int num_boxes, int truth_size, float 
             printf("\n Wrong annotation: class_id = %d. But class_id should be [from 0 to %d], file: %s \n", id, (classes-1), labelpath);
             sprintf(buff, "echo %s \"Wrong annotation: class_id = %d. But class_id should be [from 0 to %d]\" >> bad_label.list", labelpath, id, (classes-1));
             system(buff);
-            if (check_mistakes) getchar();
             ++sub;
             continue;
         }
@@ -424,7 +416,6 @@ int fill_truth_detection(const char *path, int num_boxes, int truth_size, float 
             sprintf(buff, "echo %s \"Wrong annotation: x = 0 or y = 0\" >> bad_label.list", labelpath);
             system(buff);
             ++sub;
-            if (check_mistakes) getchar();
             continue;
         }
         if (x <= 0 || x > 1 || y <= 0 || y > 1) {
@@ -432,7 +423,6 @@ int fill_truth_detection(const char *path, int num_boxes, int truth_size, float 
             sprintf(buff, "echo %s \"Wrong annotation: x = %f, y = %f\" >> bad_label.list", labelpath, x, y);
             system(buff);
             ++sub;
-            if (check_mistakes) getchar();
             continue;
         }
         if (w > 1) {
@@ -440,14 +430,12 @@ int fill_truth_detection(const char *path, int num_boxes, int truth_size, float 
             sprintf(buff, "echo %s \"Wrong annotation: w = %f\" >> bad_label.list", labelpath, w);
             system(buff);
             w = 1;
-            if (check_mistakes) getchar();
         }
         if (h > 1) {
             printf("\n Wrong annotation: h = %f, file: %s \n", h, labelpath);
             sprintf(buff, "echo %s \"Wrong annotation: h = %f\" >> bad_label.list", labelpath, h);
             system(buff);
             h = 1;
-            if (check_mistakes) getchar();
         }
         if (x == 0) x += lowest_w;
         if (y == 0) y += lowest_h;
@@ -493,33 +481,6 @@ void fill_truth_captcha(char *path, int n, float *truth)
     for(;i < n; ++i){
         truth[i*NUMCHARS + NUMCHARS-1] = 1;
     }
-}
-
-data load_data_captcha(char **paths, int n, int m, int k, int w, int h)
-{
-    if(m) paths = get_random_paths(paths, n, m);
-    data d = {0};
-    d.shallow = 0;
-    d.X = load_image_paths(paths, n, w, h);
-    d.y = make_matrix(n, k*NUMCHARS);
-    int i;
-    for(i = 0; i < n; ++i){
-        fill_truth_captcha(paths[i], k, d.y.vals[i]);
-    }
-    if(m) free(paths);
-    return d;
-}
-
-data load_data_captcha_encode(char **paths, int n, int m, int w, int h)
-{
-    if(m) paths = get_random_paths(paths, n, m);
-    data d = {0};
-    d.shallow = 0;
-    d.X = load_image_paths(paths, n, w, h);
-    d.X.cols = 17100;
-    d.y = d.X;
-    if(m) free(paths);
-    return d;
 }
 
 void fill_truth(char *path, char **labels, int k, float *truth)
@@ -1057,14 +1018,8 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
 
     if (use_mixup == 2 || use_mixup == 4) {
         printf("\n cutmix=1 - isn't supported for Detector (use cutmix=1 only for Classifier) \n");
-        if (check_mistakes) getchar();
         if(use_mixup == 2) use_mixup = 0;
         else use_mixup = 3;
-    }
-    if (use_mixup == 3 && letter_box) {
-        //printf("\n Combination: letter_box=1 & mosaic=1 - isn't supported, use only 1 of these parameters \n");
-        //if (check_mistakes) getchar();
-        //exit(0);
     }
     if (random_gen() % 2 == 0) use_mixup = 0;
     int i;
@@ -1111,9 +1066,6 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
             if (src == NULL) {
                 printf("\n Error in load_data_detection() - OpenCV \n");
                 fflush(stdout);
-                if (check_mistakes) {
-                    getchar();
-                }
                 continue;
             }
 
@@ -1586,10 +1538,6 @@ void *load_thread(void *ptr)
         *a.d = load_data_old(a.paths, a.n, a.m, a.labels, a.classes, a.w, a.h);
     } else if (a.type == CLASSIFICATION_DATA){
         *a.d = load_data_augment(a.paths, a.n, a.m, a.labels, a.classes, a.hierarchy, a.flip, a.min, a.max, a.w, a.h, a.angle, a.aspect, a.hue, a.saturation, a.exposure, a.mixup, a.blur, a.show_imgs, a.label_smooth_eps, a.dontuse_opencv, a.contrastive);
-    } else if (a.type == SUPER_DATA){
-        *a.d = load_data_super(a.paths, a.n, a.m, a.w, a.h, a.scale);
-    } else if (a.type == WRITING_DATA){
-        *a.d = load_data_writing(a.paths, a.n, a.m, a.w, a.h, a.out_w, a.out_h);
     } else if (a.type == REGION_DATA){
         *a.d = load_data_region(a.n, a.paths, a.m, a.w, a.h, a.num_boxes, a.classes, a.jitter, a.hue, a.saturation, a.exposure);
     } else if (a.type == DETECTION_DATA){
@@ -1629,134 +1577,6 @@ static pthread_t* threads = NULL;
 
 pthread_mutex_t mtx_load_data = PTHREAD_MUTEX_INITIALIZER;
 
-void *run_thread_loop(void *ptr)
-{
-    const int i = *(int *)ptr;
-
-    while (!custom_atomic_load_int(&flag_exit)) {
-        while (!custom_atomic_load_int(&run_load_data[i])) {
-            if (custom_atomic_load_int(&flag_exit)) {
-                free(ptr);
-                return 0;
-            }
-            this_thread_sleep_for(thread_wait_ms);
-        }
-
-        pthread_mutex_lock(&mtx_load_data);
-        load_args *args_local = (load_args *)xcalloc(1, sizeof(load_args));
-        *args_local = args_swap[i];
-        pthread_mutex_unlock(&mtx_load_data);
-
-        load_thread(args_local);
-
-        custom_atomic_store_int(&run_load_data[i], 0);
-    }
-    free(ptr);
-    return 0;
-}
-
-void *load_threads(void *ptr)
-{
-    //srand(time(0));
-    int i;
-    load_args args = *(load_args *)ptr;
-    if (args.threads == 0) args.threads = 1;
-    data *out = args.d;
-    int total = args.n;
-    free(ptr);
-    data* buffers = (data*)xcalloc(args.threads, sizeof(data));
-    if (!threads) {
-        threads = (pthread_t*)xcalloc(args.threads, sizeof(pthread_t));
-        run_load_data = (volatile int *)xcalloc(args.threads, sizeof(int));
-        args_swap = (load_args *)xcalloc(args.threads, sizeof(load_args));
-        fprintf(stderr, " Create %d permanent cpu-threads \n", args.threads);
-
-        for (i = 0; i < args.threads; ++i) {
-            int* ptr = (int*)xcalloc(1, sizeof(int));
-            *ptr = i;
-            if (pthread_create(&threads[i], 0, run_thread_loop, ptr)) error("Thread creation failed");
-        }
-    }
-
-    for (i = 0; i < args.threads; ++i) {
-        args.d = buffers + i;
-        args.n = (i + 1) * total / args.threads - i * total / args.threads;
-
-        pthread_mutex_lock(&mtx_load_data);
-        args_swap[i] = args;
-        pthread_mutex_unlock(&mtx_load_data);
-
-        custom_atomic_store_int(&run_load_data[i], 1);  // run thread
-    }
-    for (i = 0; i < args.threads; ++i) {
-        while (custom_atomic_load_int(&run_load_data[i])) this_thread_sleep_for(thread_wait_ms); //   join
-    }
-
-    /*
-    pthread_t* threads = (pthread_t*)xcalloc(args.threads, sizeof(pthread_t));
-    for(i = 0; i < args.threads; ++i){
-        args.d = buffers + i;
-        args.n = (i+1) * total/args.threads - i * total/args.threads;
-        threads[i] = load_data_in_thread(args);
-    }
-    for(i = 0; i < args.threads; ++i){
-        pthread_join(threads[i], 0);
-    }
-    */
-
-    *out = concat_datas(buffers, args.threads);
-    out->shallow = 0;
-    for(i = 0; i < args.threads; ++i){
-        buffers[i].shallow = 1;
-        free_data(buffers[i]);
-    }
-    free(buffers);
-    //free(threads);
-    return 0;
-}
-
-void free_load_threads(void *ptr)
-{
-    load_args args = *(load_args *)ptr;
-    if (args.threads == 0) args.threads = 1;
-    int i;
-    if (threads) {
-        custom_atomic_store_int(&flag_exit, 1);
-        for (i = 0; i < args.threads; ++i) {
-            pthread_join(threads[i], 0);
-        }
-        free((void*)run_load_data);
-        free(args_swap);
-        free(threads);
-        threads = NULL;
-        custom_atomic_store_int(&flag_exit, 0);
-    }
-}
-
-pthread_t load_data(load_args args)
-{
-    pthread_t thread;
-    struct load_args* ptr = (load_args*)xcalloc(1, sizeof(struct load_args));
-    *ptr = args;
-    if(pthread_create(&thread, 0, load_threads, ptr)) error("Thread creation failed");
-    return thread;
-}
-
-data load_data_writing(char **paths, int n, int m, int w, int h, int out_w, int out_h)
-{
-    if(m) paths = get_random_paths(paths, n, m);
-    char **replace_paths = find_replace_paths(paths, n, ".png", "-label.png");
-    data d = {0};
-    d.shallow = 0;
-    d.X = load_image_paths(paths, n, w, h);
-    d.y = load_image_paths_gray(replace_paths, n, out_w, out_h);
-    if(m) free(paths);
-    int i;
-    for(i = 0; i < n; ++i) free(replace_paths[i]);
-    free(replace_paths);
-    return d;
-}
-
 data load_data_old(char **paths, int n, int m, char **labels, int k, int w, int h)
 {
     if(m) paths = get_random_paths(paths, n, m);
@@ -1781,36 +1601,6 @@ data load_data_old(char **paths, int n, int m, char **labels, int k, int w, int 
    return d;
    }
  */
-
-data load_data_super(char **paths, int n, int m, int w, int h, int scale)
-{
-    if(m) paths = get_random_paths(paths, n, m);
-    data d = {0};
-    d.shallow = 0;
-
-    int i;
-    d.X.rows = n;
-    d.X.vals = (float**)xcalloc(n, sizeof(float*));
-    d.X.cols = w*h*3;
-
-    d.y.rows = n;
-    d.y.vals = (float**)xcalloc(n, sizeof(float*));
-    d.y.cols = w*scale * h*scale * 3;
-
-    for(i = 0; i < n; ++i){
-        image im = load_image_color(paths[i], 0, 0);
-        image crop = random_crop_image(im, w*scale, h*scale);
-        int flip = random_gen()%2;
-        if (flip) flip_image(crop);
-        image resize = resize_image(crop, w, h);
-        d.X.vals[i] = resize.data;
-        d.y.vals[i] = crop.data;
-        free_image(im);
-    }
-
-    if(m) free(paths);
-    return d;
-}
 
 data load_data_augment(char **paths, int n, int m, char **labels, int k, tree *hierarchy, int use_flip, int min, int max, int w, int h, float angle,
     float aspect, float hue, float saturation, float exposure, int use_mixup, int use_blur, int show_imgs, float label_smooth_eps, int dontuse_opencv, int contrastive)
@@ -2072,34 +1862,6 @@ data load_categorical_data_csv(char *filename, int target, int k)
     return d;
 }
 
-data load_cifar10_data(char *filename)
-{
-    data d = {0};
-    d.shallow = 0;
-    long i,j;
-    matrix X = make_matrix(10000, 3072);
-    matrix y = make_matrix(10000, 10);
-    d.X = X;
-    d.y = y;
-
-    FILE *fp = fopen(filename, "rb");
-    if(!fp) file_error(filename);
-    for(i = 0; i < 10000; ++i){
-        unsigned char bytes[3073];
-        fread(bytes, 1, 3073, fp);
-        int class_id = bytes[0];
-        y.vals[i][class_id] = 1;
-        for(j = 0; j < X.cols; ++j){
-            X.vals[i][j] = (double)bytes[j+1];
-        }
-    }
-    //translate_data_rows(d, -128);
-    scale_data_rows(d, 1./255);
-    //normalize_data_rows(d);
-    fclose(fp);
-    return d;
-}
-
 void get_random_batch(data d, int n, float *X, float *y)
 {
     int j;
@@ -2131,87 +1893,6 @@ void smooth_data(data d)
         }
     }
 }
-
-data load_all_cifar10()
-{
-    data d = {0};
-    d.shallow = 0;
-    int i,j,b;
-    matrix X = make_matrix(50000, 3072);
-    matrix y = make_matrix(50000, 10);
-    d.X = X;
-    d.y = y;
-
-
-    for(b = 0; b < 5; ++b){
-        char buff[256];
-        sprintf(buff, "data/cifar/cifar-10-batches-bin/data_batch_%d.bin", b+1);
-        FILE *fp = fopen(buff, "rb");
-        if(!fp) file_error(buff);
-        for(i = 0; i < 10000; ++i){
-            unsigned char bytes[3073];
-            fread(bytes, 1, 3073, fp);
-            int class_id = bytes[0];
-            y.vals[i+b*10000][class_id] = 1;
-            for(j = 0; j < X.cols; ++j){
-                X.vals[i+b*10000][j] = (double)bytes[j+1];
-            }
-        }
-        fclose(fp);
-    }
-    //normalize_data_rows(d);
-    //translate_data_rows(d, -128);
-    scale_data_rows(d, 1./255);
-    smooth_data(d);
-    return d;
-}
-
-data load_go(char *filename)
-{
-    FILE *fp = fopen(filename, "rb");
-    matrix X = make_matrix(3363059, 361);
-    matrix y = make_matrix(3363059, 361);
-    int row, col;
-
-    if(!fp) file_error(filename);
-    char *label;
-    int count = 0;
-    while((label = fgetl(fp))){
-        int i;
-        if(count == X.rows){
-            X = resize_matrix(X, count*2);
-            y = resize_matrix(y, count*2);
-        }
-        sscanf(label, "%d %d", &row, &col);
-        char *board = fgetl(fp);
-
-        int index = row*19 + col;
-        y.vals[count][index] = 1;
-
-        for(i = 0; i < 19*19; ++i){
-            float val = 0;
-            if(board[i] == '1') val = 1;
-            else if(board[i] == '2') val = -1;
-            X.vals[count][i] = val;
-        }
-        ++count;
-        free(label);
-        free(board);
-    }
-    X = resize_matrix(X, count);
-    y = resize_matrix(y, count);
-
-    data d = {0};
-    d.shallow = 0;
-    d.X = X;
-    d.y = y;
-
-
-    fclose(fp);
-
-    return d;
-}
-
 
 void randomize_data(data d)
 {

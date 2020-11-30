@@ -80,27 +80,7 @@ void forward_network_gpu(network net, network_state state)
             fill_ongpu(l.outputs * l.batch, 0, l.delta_gpu, 1);
         }
 
-        if (net.benchmark_layers) {
-            start_time = get_time_point();
-        }
-
         l.forward_gpu(l, state);
-
-        if (net.benchmark_layers) {
-            CHECK_CUDA(cudaDeviceSynchronize());
-            end_time = get_time_point();
-            const double took_time = (end_time - start_time) / 1000;
-            const double alpha = 0.9;
-            if (avg_time_per_layer[i].time == 0) {
-                avg_time_per_layer[i].layer_id = i;
-                avg_time_per_layer[i].layer_type = l.type;
-                avg_time_per_layer[i].time = took_time;
-            }
-            else avg_time_per_layer[i].time = avg_time_per_layer[i].time * alpha + took_time * (1 - alpha);
-
-            sorted_avg_time_per_layer[i] = avg_time_per_layer[i];
-            printf("\n fw-layer %d - type: %d - %lf ms - avg_time %lf ms \n", i, l.type, took_time, avg_time_per_layer[i].time);
-        }
 
         if(net.wait_stream)
             cudaStreamSynchronize(get_cuda_stream());
@@ -184,27 +164,7 @@ void backward_network_gpu(network net, network_state state)
         }
         if (l.onlyforward) continue;
 
-        if (net.benchmark_layers) {
-            start_time = get_time_point();
-        }
-
         l.backward_gpu(l, state);
-
-        if (net.benchmark_layers) {
-            CHECK_CUDA(cudaDeviceSynchronize());
-            end_time = get_time_point();
-            const double took_time = (end_time - start_time) / 1000;
-            const double alpha = 0.9;
-            if (avg_time_per_layer[i].time == 0) {
-                avg_time_per_layer[i].layer_id = i;
-                avg_time_per_layer[i].layer_type = l.type;
-                avg_time_per_layer[i].time = took_time;
-            }
-            else avg_time_per_layer[i].time = avg_time_per_layer[i].time * alpha + took_time * (1 - alpha);
-
-            sorted_avg_time_per_layer[i] = avg_time_per_layer[i];
-            printf("\n bw-layer %d - type: %d - %lf ms - avg_time %lf ms \n", i, l.type, took_time, avg_time_per_layer[i].time);
-        }
 
         if (i != 0) {
             layer prev = net.layers[i - 1];
@@ -250,15 +210,6 @@ void backward_network_gpu(network net, network_state state)
             x_size, original_delta, original_input, net.learning_rate);
         axpy_ongpu(x_size, net.learning_rate, original_delta, 1, original_input, 1);
         constrain_min_max_ongpu(x_size, 0, 1, original_input, 1);
-    }
-
-    if (net.benchmark_layers) {
-        printf("\n\nSorted by time (backward):\n");
-        qsort(sorted_avg_time_per_layer, net.n, sizeof(time_benchmark_layers), time_comparator);
-        for (i = 0; i < net.n; ++i) {
-            //printf("layer %d - type: %d - avg_time %lf ms \n", avg_time_per_layer[i].layer_id, avg_time_per_layer[i].layer_type, avg_time_per_layer[i].time);
-            printf("%d - bw-sort-layer %d - type: %d - avg_time %lf ms \n", i, sorted_avg_time_per_layer[i].layer_id, sorted_avg_time_per_layer[i].layer_type, sorted_avg_time_per_layer[i].time);
-        }
     }
 }
 
