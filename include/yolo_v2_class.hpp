@@ -57,8 +57,6 @@ struct bbox_t_container {
 #endif
 
 extern "C" LIB_API int init(const char *configurationFilename, const char *weightsFilename, int gpu, int detector_index);
-extern "C" LIB_API int detect_image(const char *filename, bbox_t_container &container);
-extern "C" LIB_API int detect_mat(const uint8_t* data, const size_t data_length, bbox_t_container &container);
 extern "C" LIB_API int detect_mat_custom(cv::Mat image, bbox_t_container &container, int detector_index);
 extern "C" LIB_API int dispose(int detector_index);
 extern "C" LIB_API int get_device_count();
@@ -66,7 +64,6 @@ extern "C" LIB_API int get_device_name(int gpu, char* deviceName);
 extern "C" LIB_API bool built_with_cuda();
 extern "C" LIB_API bool built_with_cudnn();
 extern "C" LIB_API bool built_with_opencv();
-extern "C" LIB_API void send_json_custom(char const* send_buf, int port, int timeout);
 
 class Detector {
     std::shared_ptr<void> detector_gpu_ptr;
@@ -80,9 +77,7 @@ public:
     LIB_API Detector(std::string cfg_filename, std::string weight_filename, int gpu_id = 0);
     LIB_API ~Detector();
 
-    LIB_API std::vector<bbox_t> detect(std::string image_filename, float thresh = 0.2, bool use_mean = false);
     LIB_API std::vector<bbox_t> detect(image_t img, float thresh = 0.2, bool use_mean = false);
-    static LIB_API image_t load_image(std::string image_filename);
     static LIB_API void free_image(image_t m);
     LIB_API int get_net_width() const;
     LIB_API int get_net_height() const;
@@ -182,49 +177,6 @@ private:
 
 public:
 
-    bool send_json_http(std::vector<bbox_t> cur_bbox_vec, std::vector<std::string> obj_names, int frame_id,
-        std::string filename = std::string(), int timeout = 400000, int port = 8070)
-    {
-        std::string send_str;
-
-        char *tmp_buf = (char *)calloc(1024, sizeof(char));
-        if (!filename.empty()) {
-            sprintf(tmp_buf, "{\n \"frame_id\":%d, \n \"filename\":\"%s\", \n \"objects\": [ \n", frame_id, filename.c_str());
-        }
-        else {
-            sprintf(tmp_buf, "{\n \"frame_id\":%d, \n \"objects\": [ \n", frame_id);
-        }
-        send_str = tmp_buf;
-        free(tmp_buf);
-
-        for (auto & i : cur_bbox_vec) {
-            char *buf = (char *)calloc(2048, sizeof(char));
-
-            sprintf(buf, "  {\"class_id\":%d, \"name\":\"%s\", \"absolute_coordinates\":{\"center_x\":%d, \"center_y\":%d, \"width\":%d, \"height\":%d}, \"confidence\":%f",
-                i.obj_id, obj_names[i.obj_id].c_str(), i.x, i.y, i.w, i.h, i.prob);
-
-            //sprintf(buf, "  {\"class_id\":%d, \"name\":\"%s\", \"relative_coordinates\":{\"center_x\":%f, \"center_y\":%f, \"width\":%f, \"height\":%f}, \"confidence\":%f",
-            //    i.obj_id, obj_names[i.obj_id], i.x, i.y, i.w, i.h, i.prob);
-
-            send_str += buf;
-
-            if (!std::isnan(i.z_3d)) {
-                sprintf(buf, "\n    , \"coordinates_in_meters\":{\"x_3d\":%.2f, \"y_3d\":%.2f, \"z_3d\":%.2f}",
-                    i.x_3d, i.y_3d, i.z_3d);
-                send_str += buf;
-            }
-
-            send_str += "}\n";
-
-            free(buf);
-        }
-
-        //send_str +=  "\n ] \n}, \n";
-        send_str += "\n ] \n}";
-
-        send_json_custom(send_str.c_str(), port, timeout);
-        return true;
-    }
 };
 // --------------------------------------------------------------------------------
 

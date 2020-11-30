@@ -33,14 +33,6 @@ int init(const char *configurationFilename, const char *weightsFilename, int gpu
     return 1;
 }
 
-int detect_image(const char *filename, bbox_t_container &container)
-{
-    std::vector<bbox_t> detection = detectors[0]->detect(filename);
-    for (size_t i = 0; i < detection.size() && i < C_SHARP_MAX_OBJECTS; ++i)
-        container.candidates[i] = detection[i];
-    return detection.size();
-}
-
 int detect_mat_custom(cv::Mat image, bbox_t_container &container, int detector_num) {
     std::vector<bbox_t> detection = detectors[detector_num]->detect(image);
     for (size_t i = 0; i < detection.size() && i < C_SHARP_MAX_OBJECTS; ++i)
@@ -48,23 +40,7 @@ int detect_mat_custom(cv::Mat image, bbox_t_container &container, int detector_n
     return detection.size();
 }
 
-int detect_mat(const uint8_t* data, const size_t data_length, bbox_t_container &container) {
-#ifdef OPENCV
-    std::vector<char> vdata(data, data + data_length);
-    cv::Mat image = imdecode(cv::Mat(vdata), 1);
-
-    std::vector<bbox_t> detection = detectors[0]->detect(image);
-    for (size_t i = 0; i < detection.size() && i < C_SHARP_MAX_OBJECTS; ++i)
-        container.candidates[i] = detection[i];
-    return detection.size();
-#else
-    return -1;
-#endif    // OPENCV
-}
-
 int dispose(int detector_index) {
-    //if (detector != NULL) delete detector;
-    //detector = NULL;
     detectors[detector_index].reset();
     return 1;
 }
@@ -221,49 +197,6 @@ LIB_API int Detector::get_net_color_depth() const {
     return detector_gpu.net.c;
 }
 
-
-LIB_API std::vector<bbox_t> Detector::detect(std::string image_filename, float thresh, bool use_mean)
-{
-    std::shared_ptr<image_t> image_ptr(new image_t, [](image_t *img) { if (img->data) free(img->data); delete img; });
-    *image_ptr = load_image(image_filename);
-    return detect(*image_ptr, thresh, use_mean);
-}
-
-static image load_image_stb(char *filename, int channels)
-{
-    int w, h, c;
-    unsigned char *data = stbi_load(filename, &w, &h, &c, channels);
-    if (!data)
-        throw std::runtime_error("file not found");
-    if (channels) c = channels;
-    int i, j, k;
-    image im = make_image(w, h, c);
-    for (k = 0; k < c; ++k) {
-        for (j = 0; j < h; ++j) {
-            for (i = 0; i < w; ++i) {
-                int dst_index = i + w*j + w*h*k;
-                int src_index = k + c*i + c*w*j;
-                im.data[dst_index] = (float)data[src_index] / 255.;
-            }
-        }
-    }
-    free(data);
-    return im;
-}
-
-LIB_API image_t Detector::load_image(std::string image_filename)
-{
-    char *input = const_cast<char *>(image_filename.c_str());
-    image im = load_image_stb(input, 3);
-
-    image_t img;
-    img.c = im.c;
-    img.data = im.data;
-    img.h = im.h;
-    img.w = im.w;
-
-    return img;
-}
 
 
 LIB_API void Detector::free_image(image_t m)
