@@ -471,17 +471,6 @@ void* sync_layer_thread(void* ptr)
     return 0;
 }
 
-pthread_t sync_layer_in_thread(network* nets, int n, int j)
-{
-    pthread_t thread;
-    sync_args* ptr = (sync_args*)calloc(1, sizeof(sync_args));
-    ptr->nets = nets;
-    ptr->n = n;
-    ptr->j = j;
-    if (pthread_create(&thread, 0, sync_layer_thread, ptr)) error("Thread creation failed");
-    return thread;
-}
-
 float train_networks(network* nets, int n, data d, int interval)
 {
     return -1;

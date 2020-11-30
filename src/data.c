@@ -26,23 +26,6 @@ list *get_paths(char *filename)
     return lines;
 }
 
-/*
-char **get_random_paths_indexes(char **paths, int n, int m, int *indexes)
-{
-    char **random_paths = calloc(n, sizeof(char*));
-    int i;
-    pthread_mutex_lock(&mutex);
-    for(i = 0; i < n; ++i){
-        int index = random_gen()%m;
-        indexes[i] = index;
-        random_paths[i] = paths[index];
-        if(i == 0) printf("%s\n", paths[index]);
-    }
-    pthread_mutex_unlock(&mutex);
-    return random_paths;
-}
-*/
-
 char **get_sequential_paths(char **paths, int n, int m, int mini_batch, int augment_speed, int contrastive)
 {
     int speed = rand_int(1, augment_speed);
@@ -1558,15 +1541,6 @@ void *load_thread(void *ptr)
     }
     free(ptr);
     return 0;
-}
-
-pthread_t load_data_in_thread(load_args args)
-{
-    pthread_t thread;
-    struct load_args* ptr = (load_args*)xcalloc(1, sizeof(struct load_args));
-    *ptr = args;
-    if(pthread_create(&thread, 0, load_thread, ptr)) error("Thread creation failed");
-    return thread;
 }
 
 static const int thread_wait_ms = 5;
