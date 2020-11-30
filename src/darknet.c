@@ -13,12 +13,10 @@
 #include "connected_layer.h"
 
 
-extern void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *filename, int top);
 extern void run_detector(int argc, char **argv);
 extern void run_nightmare(int argc, char **argv);
 extern void run_dice(int argc, char **argv);
 extern void run_compare(int argc, char **argv);
-extern void run_classifier(int argc, char **argv);
 extern void run_char_rnn(int argc, char **argv);
 extern void run_vid_rnn(int argc, char **argv);
 extern void run_go(int argc, char **argv);
@@ -488,10 +486,6 @@ int main(int argc, char **argv)
         run_char_rnn(argc, argv);
     } else if (0 == strcmp(argv[1], "vid")){
         run_vid_rnn(argc, argv);
-    } else if (0 == strcmp(argv[1], "classify")){
-        predict_classifier("cfg/imagenet1k.data", argv[2], argv[3], argv[4], 5);
-    } else if (0 == strcmp(argv[1], "classifier")){
-        run_classifier(argc, argv);
     } else if (0 == strcmp(argv[1], "art")){
         run_art(argc, argv);
     } else if (0 == strcmp(argv[1], "compare")){

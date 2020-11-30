@@ -182,7 +182,6 @@
     <ClCompile Include="..\..\src\batchnorm_layer.c" />
     <ClCompile Include="..\..\src\blas.c" />
     <ClCompile Include="..\..\src\box.c" />
-    <ClCompile Include="..\..\src\classifier.c" />
     <ClCompile Include="..\..\src\col2im.c" />
     <ClCompile Include="..\..\src\compare.c" />
     <ClCompile Include="..\..\src\connected_layer.c" />
@@ -248,7 +247,6 @@
     <ClInclude Include="..\..\src\batchnorm_layer.h" />
     <ClInclude Include="..\..\src\blas.h" />
     <ClInclude Include="..\..\src\box.h" />
-    <ClInclude Include="..\..\src\classifier.h" />
     <ClInclude Include="..\..\src\col2im.h" />
     <ClInclude Include="..\..\src\connected_layer.h" />
     <ClInclude Include="..\..\src\convolutional_layer.h" />
