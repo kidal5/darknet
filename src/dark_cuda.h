@@ -60,8 +60,6 @@ extern "C" {
 
     cublasHandle_t blas_handle();
     void free_pinned_memory();
-    void pre_allocate_pinned_memory(size_t size);
-    float *cuda_make_array_pinned_preallocated(float *x, size_t n);
     float *cuda_make_array_pinned(float *x, size_t n);
     float *cuda_make_array(float *x, size_t n);
     void **cuda_make_array_pointers(void **x, size_t n);

@@ -1340,13 +1340,6 @@ network parse_network_cfg_custom(char *filename, int batch, int time_steps)
     if(!is_network(s)) error("First section must be [net] or [network]");
     parse_net_options(options, &net);
 
-#ifdef GPU
-    printf("net.optimized_memory = %d \n", net.optimized_memory);
-    if (net.optimized_memory >= 2 && params.train) {
-        pre_allocate_pinned_memory((size_t)1024 * 1024 * 1024 * 8);   // pre-allocate 8 GB CPU-RAM for pinned memory
-    }
-#endif  // GPU
-
     params.h = net.h;
     params.w = net.w;
     params.c = net.c;
@@ -1545,36 +1538,6 @@ network parse_network_cfg_custom(char *filename, int batch, int time_steps)
 #ifdef GPU
         // futher GPU-memory optimization: net.optimized_memory == 2
         l.optimized_memory = net.optimized_memory;
-        if (net.optimized_memory >= 2 && params.train && l.type != DROPOUT)
-        {
-            if (l.output_gpu) {
-                cuda_free(l.output_gpu);
-                //l.output_gpu = cuda_make_array_pinned(l.output, l.batch*l.outputs); // l.steps
-                l.output_gpu = cuda_make_array_pinned_preallocated(NULL, l.batch*l.outputs); // l.steps
-            }
-            if (l.activation_input_gpu) {
-                cuda_free(l.activation_input_gpu);
-                l.activation_input_gpu = cuda_make_array_pinned_preallocated(NULL, l.batch*l.outputs); // l.steps
-            }
-
-            if (l.x_gpu) {
-                cuda_free(l.x_gpu);
-                l.x_gpu = cuda_make_array_pinned_preallocated(NULL, l.batch*l.outputs); // l.steps
-            }
-
-            // maximum optimization
-            if (net.optimized_memory >= 3 && l.type != DROPOUT) {
-                if (l.delta_gpu) {
-                    cuda_free(l.delta_gpu);
-                    //l.delta_gpu = cuda_make_array_pinned_preallocated(NULL, l.batch*l.outputs); // l.steps
-                    //printf("\n\n PINNED DELTA GPU = %d \n", l.batch*l.outputs);
-                }
-            }
-
-            if (l.type == CONVOLUTIONAL) {
-                set_specified_workspace_limit(&l, net.workspace_size_limit);   // workspace size limit 1 GB
-            }
-        }
 #endif // GPU
 
         l.clip = option_find_float_quiet(options, "clip", 0);
@@ -1617,44 +1580,6 @@ network parse_network_cfg_custom(char *filename, int batch, int time_steps)
         }
     }
     free_list(sections);
-
-#ifdef GPU
-    if (net.optimized_memory && params.train)
-    {
-        int k;
-        for (k = 0; k < net.n; ++k) {
-            layer l = net.layers[k];
-            // delta GPU-memory optimization: net.optimized_memory == 1
-            if (!l.keep_delta_gpu) {
-                const size_t delta_size = l.outputs*l.batch; // l.steps
-                if (net.max_delta_gpu_size < delta_size) {
-                    net.max_delta_gpu_size = delta_size;
-                    if (net.global_delta_gpu) cuda_free(net.global_delta_gpu);
-                    if (net.state_delta_gpu) cuda_free(net.state_delta_gpu);
-                    assert(net.max_delta_gpu_size > 0);
-                    net.global_delta_gpu = (float *)cuda_make_array(NULL, net.max_delta_gpu_size);
-                    net.state_delta_gpu = (float *)cuda_make_array(NULL, net.max_delta_gpu_size);
-                }
-                if (l.delta_gpu) {
-                    if (net.optimized_memory >= 3) {}
-                    else cuda_free(l.delta_gpu);
-                }
-                l.delta_gpu = net.global_delta_gpu;
-            }
-
-            // maximum optimization
-            if (net.optimized_memory >= 3 && l.type != DROPOUT) {
-                if (l.delta_gpu && l.keep_delta_gpu) {
-                    //cuda_free(l.delta_gpu);   // already called above
-                    l.delta_gpu = cuda_make_array_pinned_preallocated(NULL, l.batch*l.outputs); // l.steps
-                    //printf("\n\n PINNED DELTA GPU = %d \n", l.batch*l.outputs);
-                }
-            }
-
-            net.layers[k] = l;
-        }
-    }
-#endif
 
     set_train_only_bn(net); // set l.train_only_bn for all required layers
 
