@@ -24,7 +24,6 @@ extern void run_char_rnn(int argc, char **argv);
 extern void run_vid_rnn(int argc, char **argv);
 extern void run_go(int argc, char **argv);
 extern void run_art(int argc, char **argv);
-extern void run_super(int argc, char **argv);
 
 void average(int argc, char *argv[])
 {
@@ -479,8 +478,6 @@ int main(int argc, char **argv)
         average(argc, argv);
     } else if (0 == strcmp(argv[1], "yolo")){
         run_yolo(argc, argv);
-    } else if (0 == strcmp(argv[1], "super")){
-        run_super(argc, argv);
     } else if (0 == strcmp(argv[1], "detector")){
         run_detector(argc, argv);
     } else if (0 == strcmp(argv[1], "detect")){
