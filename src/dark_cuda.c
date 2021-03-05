@@ -165,9 +165,10 @@ cudnnHandle_t cudnn_handle()
     static cudnnHandle_t handle[16];
     int i = cuda_get_device();
     if(!init[i]) {
-        cudnnCreate(&handle[i]);
-        init[i] = 1;
-        cudnnStatus_t status = cudnnSetStream(handle[i], get_cuda_stream());
+        cudnnStatus_t status = cudnnCreate(&handle[i]);
+        CHECK_CUDNN(status);
+    	init[i] = 1;
+        status = cudnnSetStream(handle[i], get_cuda_stream());
         CHECK_CUDNN(status);
     }
     return handle[i];

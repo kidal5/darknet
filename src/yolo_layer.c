@@ -136,8 +136,8 @@ box get_yolo_box(float *x, float *biases, int n, int index, int i, int j, int lw
     // w = ln(t.w * net.w / anchors_w); // w - output of previous conv-layer
     // h = ln(t.h * net.h / anchors_h); // h - output of previous conv-layer
     if (new_coords) {
-        b.x = (i + x[index + 0 * stride] * 2 - 0.5) / lw;
-        b.y = (j + x[index + 1 * stride] * 2 - 0.5) / lh;
+        b.x = (i + x[index + 0 * stride]) / lw;
+        b.y = (j + x[index + 1 * stride]) / lh;
         b.w = x[index + 2 * stride] * x[index + 2 * stride] * 4 * biases[2 * n] / w;
         b.h = x[index + 3 * stride] * x[index + 3 * stride] * 4 * biases[2 * n + 1] / h;
     }
@@ -195,8 +195,8 @@ ious delta_yolo_box(box truth, float *x, float *biases, int n, int index, int i,
         float th = log(truth.h*h / biases[2 * n + 1]);
 
         if (new_coords) {
-            tx = (truth.x*lw - i + 0.5) / 2;
-            ty = (truth.y*lh - j + 0.5) / 2;
+            //tx = (truth.x*lw - i + 0.5) / 2;
+            //ty = (truth.y*lh - j + 0.5) / 2;
             tw = sqrt(truth.w*w / (4 * biases[2 * n]));
             th = sqrt(truth.h*h / (4 * biases[2 * n + 1]));
         }
@@ -228,15 +228,27 @@ ious delta_yolo_box(box truth, float *x, float *biases, int n, int index, int i,
         float dw = all_ious.dx_iou.dl;
         float dh = all_ious.dx_iou.dr;
 
+
         // predict exponential, apply gradient of e^delta_t ONLY for w,h
         if (new_coords) {
-            dw *= 8 * x[index + 2 * stride];
-            dh *= 8 * x[index + 3 * stride];
+            //dw *= 8 * x[index + 2 * stride];
+            //dh *= 8 * x[index + 3 * stride];
+            //dw *= 8 * x[index + 2 * stride] * biases[2 * n] / w;
+            //dh *= 8 * x[index + 3 * stride] * biases[2 * n + 1] / h;
+
+            //float grad_w = 8 * exp(-x[index + 2 * stride]) / pow(exp(-x[index + 2 * stride]) + 1, 3);
+            //float grad_h = 8 * exp(-x[index + 3 * stride]) / pow(exp(-x[index + 3 * stride]) + 1, 3);
+            //dw *= grad_w;
+            //dh *= grad_h;
         }
         else {
             dw *= exp(x[index + 2 * stride]);
             dh *= exp(x[index + 3 * stride]);
         }
+
+
+        //dw *= exp(x[index + 2 * stride]);
+        //dh *= exp(x[index + 3 * stride]);
 
         // normalize iou weight
         dx *= iou_normalizer;
@@ -366,6 +378,8 @@ typedef struct train_yolo_args {
     int b;
 
     float tot_iou;
+    float tot_giou_loss;
+    float tot_iou_loss;
     int count;
     int class_count;
 } train_yolo_args;
@@ -386,8 +400,8 @@ void *process_batch(void* ptr)
         float tot_giou = 0;
         float tot_diou = 0;
         float tot_ciou = 0;
-        float tot_iou_loss = 0;
-        float tot_giou_loss = 0;
+        //float tot_iou_loss = 0;
+        //float tot_giou_loss = 0;
         float tot_diou_loss = 0;
         float tot_ciou_loss = 0;
         float recall = 0;
@@ -537,10 +551,10 @@ void *process_batch(void* ptr)
 
                 // range is 0 <= 1
                 args->tot_iou += all_ious.iou;
-                tot_iou_loss += 1 - all_ious.iou;
+                args->tot_iou_loss += 1 - all_ious.iou;
                 // range is -1 <= giou <= 1
                 tot_giou += all_ious.giou;
-                tot_giou_loss += 1 - all_ious.giou;
+                args->tot_giou_loss += 1 - all_ious.giou;
 
                 tot_diou += all_ious.diou;
                 tot_diou_loss += 1 - all_ious.diou;
@@ -589,10 +603,10 @@ void *process_batch(void* ptr)
 
                         // range is 0 <= 1
                         args->tot_iou += all_ious.iou;
-                        tot_iou_loss += 1 - all_ious.iou;
+                        args->tot_iou_loss += 1 - all_ious.iou;
                         // range is -1 <= giou <= 1
                         tot_giou += all_ious.giou;
-                        tot_giou_loss += 1 - all_ious.giou;
+                        args->tot_giou_loss += 1 - all_ious.giou;
 
                         tot_diou += all_ious.diou;
                         tot_diou_loss += 1 - all_ious.diou;
@@ -891,20 +905,21 @@ void forward_yolo_layer_gpu(const layer l, network_state state)
     int b, n;
     for (b = 0; b < l.batch; ++b){
         for(n = 0; n < l.n; ++n){
-            int index = entry_index(l, b, n*l.w*l.h, 0);
+            int bbox_index = entry_index(l, b, n*l.w*l.h, 0);
             // y = 1./(1. + exp(-x))
             // x = ln(y/(1-y))  // ln - natural logarithm (base = e)
             // if(y->1) x -> inf
             // if(y->0) x -> -inf
             if (l.new_coords) {
-                activate_array_ongpu(l.output_gpu + index, 4 * l.w*l.h, LOGISTIC);    // x,y,w,h
+                //activate_array_ongpu(l.output_gpu + bbox_index, 4 * l.w*l.h, LOGISTIC);    // x,y,w,h
             }
             else {
-                activate_array_ongpu(l.output_gpu + index, 2 * l.w*l.h, LOGISTIC);    // x,y
+                activate_array_ongpu(l.output_gpu + bbox_index, 2 * l.w*l.h, LOGISTIC);    // x,y
+
+                int obj_index = entry_index(l, b, n*l.w*l.h, 4);
+                activate_array_ongpu(l.output_gpu + obj_index, (1 + l.classes)*l.w*l.h, LOGISTIC); // classes and objectness
             }
-            if (l.scale_x_y != 1) scal_add_ongpu(2 * l.w*l.h, l.scale_x_y, -0.5*(l.scale_x_y - 1), l.output_gpu + index, 1);      // scale x,y
-            index = entry_index(l, b, n*l.w*l.h, 4);
-            activate_array_ongpu(l.output_gpu + index, (1+l.classes)*l.w*l.h, LOGISTIC); // classes and objectness
+            if (l.scale_x_y != 1) scal_add_ongpu(2 * l.w*l.h, l.scale_x_y, -0.5*(l.scale_x_y - 1), l.output_gpu + bbox_index, 1);      // scale x,y
         }
     }
     if(!state.train || l.onlyforward){
