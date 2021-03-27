@@ -34,6 +34,8 @@ int init(const char *configurationFilename, const char *weightsFilename, int gpu
 }
 
 int detect_mat_custom(cv::Mat image, bbox_t_container &container, int detector_num) {
+    if (!detectors[detector_num]) return 0;
+	
     std::vector<bbox_t> detection = detectors[detector_num]->detect(image);
     for (size_t i = 0; i < detection.size() && i < C_SHARP_MAX_OBJECTS; ++i)
         container.candidates[i] = detection[i];
