@@ -116,22 +116,6 @@ size_t get_workspace_size32(layer l){
                 l.fw_algo,
                 &s));
         if (s > most) most = s;
-        CHECK_CUDNN(cudnnGetConvolutionBackwardFilterWorkspaceSize(cudnn_handle(),
-                l.srcTensorDesc,
-                l.ddstTensorDesc,
-                l.convDesc,
-                l.dweightDesc,
-                l.bf_algo,
-                &s));
-        if (s > most && l.train) most = s;
-        CHECK_CUDNN(cudnnGetConvolutionBackwardDataWorkspaceSize(cudnn_handle(),
-                l.weightDesc,
-                l.ddstTensorDesc,
-                l.convDesc,
-                l.dsrcTensorDesc,
-                l.bd_algo,
-                &s));
-        if (s > most && l.train) most = s;
         return most;
     }
     #endif
@@ -157,22 +141,6 @@ size_t get_workspace_size16(layer l) {
             l.fw_algo16,
             &s));
         if (s > most) most = s;
-        CHECK_CUDNN(cudnnGetConvolutionBackwardFilterWorkspaceSize(cudnn_handle(),
-            l.srcTensorDesc16,
-            l.ddstTensorDesc16,
-            l.convDesc,
-            l.dweightDesc16,
-            l.bf_algo16,
-            &s));
-        if (s > most && l.train) most = s;
-        CHECK_CUDNN(cudnnGetConvolutionBackwardDataWorkspaceSize(cudnn_handle(),
-            l.weightDesc16,
-            l.ddstTensorDesc16,
-            l.convDesc,
-            l.dsrcTensorDesc16,
-            l.bd_algo16,
-            &s));
-        if (s > most && l.train) most = s;
         return most;
     }
 #endif
@@ -336,80 +304,6 @@ void cudnn_convolutional_setup(layer *l, int cudnn_preference, size_t workspace_
     }
     //printf(" cuDNN FWD algo: %d, time = %f ms \n", l->fw_algo, min_time);
 
-    // Bwd-Data
-    cudnnConvolutionBwdDataAlgoPerf_t conv_bwd_data_results[100];
-    CHECK_CUDNN(cudnnGetConvolutionBackwardDataAlgorithmMaxCount(cudnn_handle(), &requested_algo_count));
-
-    CHECK_CUDNN(cudnnGetConvolutionBackwardDataAlgorithm_v7(cudnn_handle(),
-        l->weightDesc,
-        l->ddstTensorDesc,
-        l->convDesc,
-        l->dsrcTensorDesc,
-        requested_algo_count, // (cudnnConvolutionFwdPreference_t)forward_algo,
-        &returned_algo_count, // workspace_size_specify,
-        &conv_bwd_data_results[0]));
-
-    CHECK_CUDA(cudaMemGetInfo(&free_memory, &total_memory));
-
-    found_conv_algorithm = 0;
-    min_time = 1000000;   // 1000 sec
-    for (int i = 0; i < returned_algo_count; i++)
-    {
-        if (conv_bwd_data_results[i].status == CUDNN_STATUS_SUCCESS &&
-            conv_bwd_data_results[i].memory < free_memory &&
-            (conv_bwd_data_results[i].memory <= workspace_size_specify || cudnn_preference == cudnn_fastest) &&
-            conv_bwd_data_results[i].time < min_time)
-        {
-            found_conv_algorithm = 1;
-            l->bd_algo = conv_bwd_data_results[i].algo;
-            min_time = conv_bwd_data_results[i].time;
-        }
-    }
-
-    if (!found_conv_algorithm) {
-        printf(" Error: cuDNN isn't found BWD-data algo for convolution.\n");
-        getchar();
-        exit(0);
-    }
-    //printf(" cuDNN BWD-data algo: %d \n", l->bd_algo);
-
-    // Bwd-Filters
-    cudnnConvolutionBwdFilterAlgoPerf_t conv_bwd_filter_results[100];
-    CHECK_CUDNN(cudnnGetConvolutionBackwardFilterAlgorithmMaxCount(cudnn_handle(), &requested_algo_count));
-
-    CHECK_CUDNN(cudnnGetConvolutionBackwardFilterAlgorithm_v7(cudnn_handle(),
-        l->srcTensorDesc,
-        l->ddstTensorDesc,
-        l->convDesc,
-        l->dweightDesc,
-        requested_algo_count, // (cudnnConvolutionFwdPreference_t)forward_algo,
-        &returned_algo_count, // workspace_size_specify,
-        &conv_bwd_filter_results[0]));
-
-    CHECK_CUDA(cudaMemGetInfo(&free_memory, &total_memory));
-
-    found_conv_algorithm = 0;
-    min_time = 1000000;   // 1000 sec
-    for (int i = 0; i < returned_algo_count; i++)
-    {
-        if (conv_bwd_filter_results[i].status == CUDNN_STATUS_SUCCESS &&
-            conv_bwd_filter_results[i].memory < free_memory &&
-            (conv_bwd_filter_results[i].memory <= workspace_size_specify || cudnn_preference == cudnn_fastest) &&
-            conv_bwd_filter_results[i].time < min_time)
-        {
-            found_conv_algorithm = 1;
-            l->bf_algo = conv_bwd_filter_results[i].algo;
-            min_time = conv_bwd_filter_results[i].time;
-        }
-    }
-
-    if (!found_conv_algorithm) {
-        printf(" Error: cuDNN isn't found BWD-filter algo for convolution.\n");
-        getchar();
-        exit(0);
-    }
-    //printf(" cuDNN BWD-filter algo: %d \n", l->bf_algo);
-
 #else   // CUDNN_MAJOR >= 8
 
     int forward_algo = CUDNN_CONVOLUTION_FWD_PREFER_FASTEST;
@@ -463,8 +357,6 @@ void cudnn_convolutional_setup(layer *l, int cudnn_preference, size_t workspace_
     {
         // HALF-16 if(data_type == CUDNN_DATA_HALF)
         l->fw_algo16 = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM;
-        l->bd_algo16 = CUDNN_CONVOLUTION_BWD_DATA_ALGO_1;
-        l->bf_algo16 = CUDNN_CONVOLUTION_BWD_FILTER_ALGO_1;
 
         // FLOAT-32 if(data_type == CUDNN_DATA_FLOAT)
         //l->fw_algo16 = CUDNN_CONVOLUTION_FWD_ALGO_WINOGRAD_NONFUSED;

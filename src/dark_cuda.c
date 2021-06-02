@@ -26,9 +26,7 @@ int gpu_index = 0;
 //#pragma comment(lib, "vrg_cudnn64_7.lib")
 
 #pragma comment(lib, "cudnn_ops_infer.lib")
-#pragma comment(lib, "cudnn_ops_train.lib")
 #pragma comment(lib, "cudnn_cnn_infer.lib")
-#pragma comment(lib, "cudnn_cnn_train.lib")
 
 #endif  // USE_CMAKE_LIBS
 #endif  // CUDNN

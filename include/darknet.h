@@ -673,8 +673,6 @@ struct layer {
     cudnnFilterDescriptor_t dweightDesc, dweightDesc16;
     cudnnConvolutionDescriptor_t convDesc;
     cudnnConvolutionFwdAlgo_t fw_algo, fw_algo16;
-    cudnnConvolutionBwdDataAlgo_t bd_algo, bd_algo16;
-    cudnnConvolutionBwdFilterAlgo_t bf_algo, bf_algo16;
     cudnnPoolingDescriptor_t poolingDesc;
 #else   // CUDNN
     void* srcTensorDesc, *dstTensorDesc;
